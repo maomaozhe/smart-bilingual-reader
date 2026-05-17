@@ -1,39 +1,68 @@
 # Smart Bilingual Reader
 
-A lightweight Chrome extension for reading foreign-language webpages.
+Chrome 双语阅读扩展：划词翻译、划词朗读、一键网页双语。
 
-## Features
+[English README](README_EN.md)
 
-- Translate selected text in a floating popup.
-- Speak selected text or translations with the browser's built-in speech engine.
-- Optional auto-read when text is selected.
-- One-click bilingual page mode that keeps the original text and inserts translations near it.
-- Bilingual translations inherit the original page's font, size, line height, color, alignment, and basic text style by default.
-- Configurable interface language, target language, speech rate, translation provider, bilingual style, opacity, and page translation limits.
+## 功能
 
-## Install Locally
+- 划词后弹出小型翻译卡片。
+- 翻译卡片支持朗读原文和复制译文。
+- 可选择划词后自动朗读原文，或翻译后自动朗读译文。
+- 点击扩展图标即可开启/关闭整页双语。
+- 整页双语会尽量保持原网页的字体、字号、颜色、行高、对齐和布局宽度。
+- 支持带粗体、链接等行内元素的完整段落翻译，减少只翻译半句的问题。
+- 配置页支持中文/英文界面。
+- 可配置目标语言、翻译服务、朗读速度、双语样式、译文透明度和单页翻译范围。
 
-1. Open Chrome and go to `chrome://extensions`.
-2. Turn on **Developer mode**.
-3. Click **Load unpacked**.
-4. Select this project folder.
+## 本地安装
 
-## Usage
+1. 打开 Chrome，进入 `chrome://extensions`。
+2. 打开右上角的「开发者模式」。
+3. 点击「加载已解压的扩展程序」。
+4. 选择本项目目录。
+5. 如果已经加载过旧版本，点击扩展卡片上的刷新按钮，再刷新目标网页。
 
-- Select text on any page to open the translation popup.
-- Click the extension button once to translate the current page in place. Click it again to remove bilingual translations.
-- Press `Alt+Shift+T` to toggle bilingual mode from the keyboard.
-- Open the extension's **Options** page from Chrome's extension manager to change target language, auto speech, bilingual style, and translation settings.
+## 使用方式
 
-## Translation Providers
+- 划词：显示翻译卡片。
+- 翻译卡片里的播放按钮：朗读原文。
+- 翻译卡片里的 Copy：复制译文。
+- 点击扩展图标：开启整页双语；再次点击关闭。
+- 快捷键：`Alt+Shift+T` 开启/关闭整页双语。
+- 配置页：在 `chrome://extensions` 找到扩展，进入「详情」或「扩展选项」。
 
-The default provider uses Google's public web translate endpoint. You can switch to a LibreTranslate-compatible endpoint in Options if you prefer to use your own service.
+## 配置项
 
-## Development
+- 界面语言：自动、中文、English。
+- 目标语言：简体中文、繁体中文、英文、日文、韩文、法文、德文、西班牙文等。
+- 翻译服务：默认使用 Google 公共翻译接口，也支持 LibreTranslate 兼容接口。
+- 双语样式：匹配原文样式、浅色背景、蓝色高亮。
+- 译文透明度：控制整页双语译文的视觉强度。
+- 单页最大翻译块数：限制一次整页翻译处理的段落数量。
+- 每块最少字符数：过滤过短文本，减少误翻导航和按钮。
+- 朗读设置：自动朗读原文、自动朗读译文、朗读速度、朗读音调。
+
+## 翻译服务说明
+
+默认翻译服务使用 Google 公共 Web 翻译接口，不需要 API Key。这个接口适合个人使用和快速测试，但稳定性取决于网络环境。
+
+如果你想使用自己的翻译服务，可以在配置页切换到 LibreTranslate 兼容接口，并填写服务地址和 API Key。
+
+## 开发
+
+本项目不需要构建步骤，Chrome 可以直接加载源码目录。
 
 ```bash
 npm run lint
 npm run zip
 ```
 
-The extension does not require a build step.
+- `npm run lint`：检查 Manifest 引用文件和 JavaScript 语法。
+- `npm run zip`：生成可发布的压缩包，输出到 `dist/smart-bilingual-reader.zip`。
+
+## 注意事项
+
+- Chrome 内置页面、Chrome 网上应用店、部分受保护页面不允许扩展注入脚本。
+- 加载或更新扩展后，需要刷新已经打开的网页。
+- 不同网站的正文结构差异很大，如果遇到漏译或对齐异常，可以继续补对应页面结构的兼容策略。

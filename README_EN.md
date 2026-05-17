@@ -1,0 +1,69 @@
+# Smart Bilingual Reader
+
+A lightweight Chrome extension for reading foreign-language webpages.
+
+[中文 README](README.md)
+
+## Features
+
+- Translate selected text in a compact floating card.
+- Read the selected original text with the browser's built-in speech engine.
+- Copy translations from the selection card.
+- Optional auto-read when text is selected.
+- One-click bilingual page mode that keeps the original text and inserts translations near it.
+- Bilingual translations inherit the original page's font, size, line height, color, alignment, and layout width where possible.
+- Full readable block translation for paragraphs with inline formatting such as bold text and links.
+- Chinese and English options UI.
+- Configurable interface language, target language, speech rate, translation provider, bilingual style, opacity, and page translation limits.
+
+## Install Locally
+
+1. Open Chrome and go to `chrome://extensions`.
+2. Turn on **Developer mode**.
+3. Click **Load unpacked**.
+4. Select this project folder.
+5. If an older version is already loaded, reload the extension card and refresh the target page.
+
+## Usage
+
+- Select text on any page to open the translation card.
+- Click the play button in the card to read the original text.
+- Click **Copy** to copy the translation.
+- Click the extension button once to translate the current page in place. Click it again to remove bilingual translations.
+- Press `Alt+Shift+T` to toggle bilingual mode from the keyboard.
+- Open the extension's **Options** page from Chrome's extension manager to change target language, auto speech, bilingual style, and translation settings.
+
+## Options
+
+- Interface language: Auto, Chinese, or English.
+- Target language: Chinese, English, Japanese, Korean, French, German, Spanish, and more.
+- Translation provider: Google public endpoint or a LibreTranslate-compatible endpoint.
+- Bilingual style: match original style, soft background, or blue highlight.
+- Translation opacity.
+- Maximum text blocks per page.
+- Minimum characters per text block.
+- Speech behavior, rate, and pitch.
+
+## Translation Providers
+
+The default provider uses Google's public web translate endpoint and does not require an API key. It is convenient for personal testing, but availability depends on your network environment.
+
+You can switch to a LibreTranslate-compatible endpoint in Options if you prefer to use your own translation service.
+
+## Development
+
+The extension does not require a build step.
+
+```bash
+npm run lint
+npm run zip
+```
+
+- `npm run lint` checks manifest assets and JavaScript syntax.
+- `npm run zip` creates `dist/smart-bilingual-reader.zip`.
+
+## Notes
+
+- Chrome internal pages, the Chrome Web Store, and some protected pages do not allow extension content scripts.
+- Refresh already-open webpages after loading or updating the extension.
+- Website structures vary a lot. If a page still has missing translations or alignment issues, add a compatibility strategy for that layout.

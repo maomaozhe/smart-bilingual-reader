@@ -19,6 +19,7 @@ const result = spawnSync(
     "manifest.json",
     "src",
     "README.md",
+    "README_EN.md",
     "LICENSE",
     "package.json",
     "-x",
