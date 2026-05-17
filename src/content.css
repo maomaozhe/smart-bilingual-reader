@@ -1,16 +1,18 @@
 .sbr-selection-card {
   position: fixed;
   z-index: 2147483647;
-  width: min(360px, calc(100vw - 24px));
-  max-height: min(420px, calc(100vh - 24px));
+  width: fit-content;
+  min-width: 190px;
+  max-width: min(300px, calc(100vw - 24px));
+  max-height: min(300px, calc(100vh - 24px));
   overflow: auto;
-  padding: 12px;
+  padding: 9px 10px 8px;
   color: #172026;
   background: #ffffff;
   border: 1px solid #d8dee4;
-  border-radius: 8px;
-  box-shadow: 0 14px 40px rgba(20, 28, 36, 0.22);
-  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  border-radius: 7px;
+  box-shadow: 0 10px 28px rgba(20, 28, 36, 0.18);
+  font: 13px/1.42 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .sbr-selection-card[hidden] {
@@ -19,48 +21,59 @@
 
 .sbr-selection-original {
   color: #4c5967;
-  max-height: 78px;
+  max-height: 44px;
   overflow: auto;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  font-size: 13px;
 }
 
 .sbr-selection-translated {
   color: #111820;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 7px;
+  font-size: 14px;
+  line-height: 1.35;
   white-space: pre-wrap;
 }
 
 .sbr-selection-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   border-top: 1px solid #eef1f4;
-  padding-top: 10px;
+  padding-top: 7px;
 }
 
 .sbr-selection-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
-  height: 32px;
-  padding: 0 10px;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 9px;
   color: #142033;
-  background: #f5f7fa;
+  background: #f7f9fc;
   border: 1px solid #d8dee4;
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
-  font: inherit;
+  font: 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 500;
 }
 
 .sbr-selection-button:hover {
   background: #eaf0f7;
+  border-color: #c5d0dc;
+}
+
+.sbr-icon-button {
+  width: 32px;
+  padding: 0;
+  font-size: 11px;
 }
 
 .sbr-selection-status {
   color: #657386;
-  font-size: 12px;
+  font-size: 11px;
   margin-left: auto;
 }
 

@@ -136,8 +136,7 @@ function createSelectionCard() {
     <div class="sbr-selection-original"></div>
     <div class="sbr-selection-translated"></div>
     <div class="sbr-selection-actions">
-      <button class="sbr-selection-button" data-action="speak-original" title="Read selected text" aria-label="Read selected text">▶</button>
-      <button class="sbr-selection-button" data-action="speak-translation" title="Read translation" aria-label="Read translation">译▶</button>
+      <button class="sbr-selection-button sbr-icon-button" data-action="speak-original" title="Read selected text" aria-label="Read selected text">▶</button>
       <button class="sbr-selection-button" data-action="copy" title="Copy translation" aria-label="Copy translation">Copy</button>
       <span class="sbr-selection-status">${settings.targetLanguage}</span>
     </div>
@@ -154,8 +153,6 @@ function createSelectionCard() {
     const translated = card.querySelector(".sbr-selection-translated").textContent;
     if (action === "speak-original") {
       speak(card.querySelector(".sbr-selection-original").textContent);
-    } else if (action === "speak-translation") {
-      speak(translated);
     } else if (action === "copy") {
       await navigator.clipboard.writeText(translated);
       card.querySelector(".sbr-selection-status").textContent = "Copied";
