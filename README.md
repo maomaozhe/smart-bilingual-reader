@@ -2,6 +2,8 @@
 
 Chrome 双语阅读扩展：划词翻译、划词朗读、一键网页双语。
 
+**默认翻译接口是Google public endpoint，不需要API key**
+
 [English README](README_EN.md)
 
 ## 功能
@@ -14,6 +16,15 @@ Chrome 双语阅读扩展：划词翻译、划词朗读、一键网页双语。
 - 支持带粗体、链接等行内元素的完整段落翻译，减少只翻译半句的问题。
 - 配置页支持中文/英文界面。
 - 可配置目标语言、翻译服务、朗读速度、双语样式、译文透明度和单页翻译范围。
+
+
+## 效果演示
+
+翻译后效果如图
+划词可以自动翻译，以及朗诵。
+
+<img width="956" height="945" alt="image" src="https://github.com/user-attachments/assets/d42f4387-7385-40c7-8b3c-f1f3cf8175c6" />
+
 
 ## 本地安装
 
