@@ -25,6 +25,45 @@ const SKIP_TAGS = new Set([
   "CANVAS"
 ]);
 
+const READABLE_BLOCK_SELECTOR = [
+  "article h1",
+  "article h2",
+  "article h3",
+  "article h4",
+  "article h5",
+  "article h6",
+  "article p",
+  "article li",
+  "article blockquote",
+  "main h1",
+  "main h2",
+  "main h3",
+  "main h4",
+  "main h5",
+  "main h6",
+  "main p",
+  "main li",
+  "main blockquote",
+  "section h1",
+  "section h2",
+  "section h3",
+  "section h4",
+  "section h5",
+  "section h6",
+  "section p",
+  "section li",
+  "section blockquote",
+  "p",
+  "li",
+  "blockquote",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6"
+].join(",");
+
 let settings = { ...DEFAULT_SETTINGS };
 let selectionCard;
 let lastSelectionText = "";
@@ -188,18 +227,18 @@ async function toggleBilingualPage() {
 
   bilingualBusy = true;
   try {
-    const nodes = collectTextNodes().slice(0, getBilingualMaxBlocks());
-    if (!nodes.length) {
+    const blocks = collectReadableBlocks().slice(0, getBilingualMaxBlocks());
+    if (!blocks.length) {
       toast("No readable text found");
       return { enabled: false, translated: 0 };
     }
 
-    toast(`Translating ${nodes.length} text blocks...`);
+    toast(`Translating ${blocks.length} text blocks...`);
     let translated = 0;
-    for (const group of chunk(nodes, 8)) {
-      const results = await translateBatch(group.map((node) => node.nodeValue));
+    for (const group of chunk(blocks, 8)) {
+      const results = await translateBatch(group.map((block) => block.text));
       for (let index = 0; index < group.length; index += 1) {
-        if (insertTranslation(group[index], results[index]?.translated)) {
+        if (insertBlockTranslation(group[index], results[index]?.translated)) {
           translated += 1;
         }
       }
@@ -211,6 +250,32 @@ async function toggleBilingualPage() {
   } finally {
     bilingualBusy = false;
   }
+}
+
+function collectReadableBlocks() {
+  const blocks = [];
+  const seen = new Set();
+
+  for (const element of document.querySelectorAll(READABLE_BLOCK_SELECTOR)) {
+    if (seen.has(element) || !isReadableBlock(element)) {
+      continue;
+    }
+
+    seen.add(element);
+    blocks.push({
+      element,
+      text: getElementText(element)
+    });
+  }
+
+  if (blocks.length) {
+    return blocks;
+  }
+
+  return collectTextNodes().map((node) => ({
+    element: getTranslationAnchor(node, node.parentElement),
+    text: normalizeReadableText(node.nodeValue)
+  }));
 }
 
 function collectTextNodes() {
@@ -231,8 +296,35 @@ function collectTextNodes() {
   return nodes;
 }
 
+function isReadableBlock(element) {
+  if (!element || SKIP_TAGS.has(element.tagName)) {
+    return false;
+  }
+
+  if (element.closest(".sbr-selection-card, .sbr-bilingual-translation, .sbr-page-toast")) {
+    return false;
+  }
+
+  if (element.querySelector(".sbr-bilingual-translation")) {
+    return false;
+  }
+
+  const text = getElementText(element);
+  if (text.length < getBilingualMinCharacters() || text.length > 1200) {
+    return false;
+  }
+
+  const style = window.getComputedStyle(element);
+  if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) {
+    return false;
+  }
+
+  const rect = element.getBoundingClientRect();
+  return rect.width > 20 && rect.height > 8;
+}
+
 function isReadableTextNode(node) {
-  const text = node.nodeValue.replace(/\s+/g, " ").trim();
+  const text = normalizeReadableText(node.nodeValue);
   if (text.length < getBilingualMinCharacters() || text.length > 500) {
     return false;
   }
@@ -253,6 +345,25 @@ function isReadableTextNode(node) {
 
   const rect = parent.getBoundingClientRect();
   return rect.width > 20 && rect.height > 8;
+}
+
+function insertBlockTranslation(block, translated) {
+  const clean = String(translated || "").trim();
+  if (!clean || clean === block.text) {
+    return false;
+  }
+
+  const anchor = block.element;
+  if (!anchor || getNextElement(anchor)?.classList.contains("sbr-bilingual-translation")) {
+    return false;
+  }
+
+  const translation = document.createElement("div");
+  translation.className = "sbr-bilingual-translation";
+  translation.textContent = clean;
+  applyMatchedTranslationStyle(translation, anchor);
+  insertAfter(anchor, translation);
+  return true;
 }
 
 function insertTranslation(textNode, translated) {
@@ -452,6 +563,14 @@ function getBilingualMaxBlocks() {
 
 function getBilingualMinCharacters() {
   return Math.max(2, Math.min(Number(settings.bilingualMinCharacters) || 18, 120));
+}
+
+function getElementText(element) {
+  return normalizeReadableText(element.innerText || element.textContent);
+}
+
+function normalizeReadableText(text) {
+  return String(text || "").replace(/\s+/g, " ").trim();
 }
 
 function insertAfter(anchor, node) {
