@@ -4,6 +4,7 @@ const DEFAULT_SETTINGS = {
   speakTranslatedText: false,
   speechRate: 1,
   speechPitch: 1,
+  uiLanguage: "auto",
   bilingualStyleMode: "match",
   bilingualOpacity: 0.82,
   bilingualMaxBlocks: 180,
@@ -268,11 +269,12 @@ function insertTranslation(textNode, translated) {
     return false;
   }
 
-  const translation = document.createElement(shouldUseBlockTranslation(parent) ? "div" : "span");
+  const anchor = getTranslationAnchor(textNode, parent);
+  const translation = document.createElement(shouldUseBlockTranslation(anchor) ? "div" : "span");
   translation.className = "sbr-bilingual-translation";
   translation.textContent = clean;
-  applyMatchedTranslationStyle(translation, parent);
-  insertAfter(getTranslationAnchor(textNode, parent), translation);
+  applyMatchedTranslationStyle(translation, anchor);
+  insertAfter(anchor, translation);
   return true;
 }
 
@@ -358,7 +360,7 @@ function hasNearbyTranslation(textNode, parent) {
 }
 
 function getTranslationAnchor(textNode, parent) {
-  if (parent.matches("li, dt, dd, figcaption, blockquote")) {
+  if (parent.matches("li, dt, dd, figcaption, blockquote") && isInlineElement(parent)) {
     return textNode;
   }
 
@@ -381,7 +383,7 @@ function isInlineElement(element) {
 
 function applyMatchedTranslationStyle(translation, source) {
   const style = window.getComputedStyle(source);
-  const properties = [
+  const textProperties = [
     "fontFamily",
     "fontSize",
     "fontStyle",
@@ -398,8 +400,12 @@ function applyMatchedTranslationStyle(translation, source) {
     "writingMode"
   ];
 
-  for (const property of properties) {
+  for (const property of textProperties) {
     translation.style[property] = style[property];
+  }
+
+  if (shouldUseBlockTranslation(source)) {
+    applyMatchedLayoutStyle(translation, source, style);
   }
 
   translation.style.color = settings.bilingualStyleMode === "highlight" ? "#2367c8" : style.color;
@@ -407,7 +413,36 @@ function applyMatchedTranslationStyle(translation, source) {
   translation.style.background = settings.bilingualStyleMode === "subtle" ? "rgba(35, 103, 200, 0.08)" : "transparent";
   translation.style.borderRadius = settings.bilingualStyleMode === "subtle" ? "4px" : "0";
   translation.style.padding = settings.bilingualStyleMode === "subtle" ? "0.08em 0.18em" : "0";
-  translation.style.margin = shouldUseBlockTranslation(source) ? "0.16em 0 0.42em" : "0 0 0 0.32em";
+  if (shouldUseBlockTranslation(source)) {
+    translation.style.marginTop = "0.16em";
+    translation.style.marginBottom = "0.42em";
+  } else {
+    translation.style.margin = "0 0 0 0.32em";
+  }
+}
+
+function applyMatchedLayoutStyle(translation, source, style) {
+  const rect = source.getBoundingClientRect();
+  const layoutProperties = [
+    "boxSizing",
+    "display",
+    "width",
+    "maxWidth",
+    "minWidth",
+    "marginLeft",
+    "marginRight",
+    "paddingLeft",
+    "paddingRight"
+  ];
+
+  for (const property of layoutProperties) {
+    translation.style[property] = style[property];
+  }
+
+  translation.style.display = style.display === "list-item" ? "block" : style.display;
+  if (rect.width > 0 && style.width === "auto") {
+    translation.style.width = `${rect.width}px`;
+  }
 }
 
 function getBilingualOpacity() {

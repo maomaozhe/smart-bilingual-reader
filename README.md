@@ -9,7 +9,7 @@ A lightweight Chrome extension for reading foreign-language webpages.
 - Optional auto-read when text is selected.
 - One-click bilingual page mode that keeps the original text and inserts translations near it.
 - Bilingual translations inherit the original page's font, size, line height, color, alignment, and basic text style by default.
-- Configurable target language, speech rate, translation provider, bilingual style, opacity, and page translation limits.
+- Configurable interface language, target language, speech rate, translation provider, bilingual style, opacity, and page translation limits.
 
 ## Install Locally
 

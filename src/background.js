@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS = {
   speakTranslatedText: false,
   speechRate: 1,
   speechPitch: 1,
+  uiLanguage: "auto",
   bilingualStyleMode: "match",
   bilingualOpacity: 0.82,
   bilingualMaxBlocks: 180,

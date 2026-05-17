@@ -10,115 +10,124 @@
     <main class="settings-shell">
       <header class="page-header">
         <div>
-          <h1>Smart Bilingual Reader</h1>
-          <p>Configure translation, bilingual page rendering, and reading behavior.</p>
+          <h1 data-i18n="appName">Smart Bilingual Reader</h1>
+          <p data-i18n="subtitle">Configure translation, bilingual page rendering, and reading behavior.</p>
         </div>
-        <button id="reset" class="secondary" type="button">Restore defaults</button>
+        <button id="reset" class="secondary" type="button" data-i18n="restoreDefaults">Restore defaults</button>
       </header>
 
       <section class="settings-section">
-        <h2>Translation</h2>
+        <h2 data-i18n="translation">Translation</h2>
         <div class="grid">
           <label>
-            Target language
+            <span data-i18n="uiLanguage">Interface language</span>
+            <select id="uiLanguage">
+              <option value="auto" data-i18n="langAuto">Auto</option>
+              <option value="zh-CN" data-i18n="langZh">中文</option>
+              <option value="en" data-i18n="langEn">English</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="targetLanguage">Target language</span>
             <select id="targetLanguage">
-              <option value="zh-CN">Chinese Simplified</option>
-              <option value="zh-TW">Chinese Traditional</option>
-              <option value="en">English</option>
-              <option value="ja">Japanese</option>
-              <option value="ko">Korean</option>
-              <option value="fr">French</option>
-              <option value="de">German</option>
-              <option value="es">Spanish</option>
-              <option value="ru">Russian</option>
-              <option value="it">Italian</option>
+              <option value="zh-CN" data-i18n="targetZhCn">Chinese Simplified</option>
+              <option value="zh-TW" data-i18n="targetZhTw">Chinese Traditional</option>
+              <option value="en" data-i18n="targetEn">English</option>
+              <option value="ja" data-i18n="targetJa">Japanese</option>
+              <option value="ko" data-i18n="targetKo">Korean</option>
+              <option value="fr" data-i18n="targetFr">French</option>
+              <option value="de" data-i18n="targetDe">German</option>
+              <option value="es" data-i18n="targetEs">Spanish</option>
+              <option value="ru" data-i18n="targetRu">Russian</option>
+              <option value="it" data-i18n="targetIt">Italian</option>
             </select>
           </label>
 
           <label>
-            Provider
+            <span data-i18n="provider">Provider</span>
             <select id="provider">
-              <option value="google">Google public endpoint</option>
-              <option value="libretranslate">LibreTranslate compatible endpoint</option>
+              <option value="google" data-i18n="providerGoogle">Google public endpoint</option>
+              <option value="libretranslate" data-i18n="providerLibre">LibreTranslate compatible endpoint</option>
             </select>
           </label>
 
           <label>
-            LibreTranslate URL
+            <span data-i18n="libreUrl">LibreTranslate URL</span>
             <input id="libreTranslateUrl" type="url" placeholder="https://libretranslate.example.com">
           </label>
 
           <label>
-            LibreTranslate API key
+            <span data-i18n="libreApiKey">LibreTranslate API key</span>
             <input id="libreTranslateApiKey" type="password" autocomplete="off">
           </label>
         </div>
 
         <div class="test-panel">
           <label>
-            Test text
+            <span data-i18n="testText">Test text</span>
             <textarea id="testText" rows="3">Hello, this extension keeps bilingual translations close to the original page style.</textarea>
           </label>
-          <button id="testTranslate" class="secondary" type="button">Test translation</button>
+          <button id="testTranslate" class="secondary" type="button" data-i18n="testTranslation">Test translation</button>
           <output id="testResult"></output>
         </div>
       </section>
 
       <section class="settings-section">
-        <h2>Bilingual Page</h2>
+        <h2 data-i18n="bilingualPage">Bilingual Page</h2>
         <div class="grid">
           <label>
-            Translation style
+            <span data-i18n="translationStyle">Translation style</span>
             <select id="bilingualStyleMode">
-              <option value="match">Match original style</option>
-              <option value="subtle">Matched style with soft background</option>
-              <option value="highlight">Matched style with blue text</option>
+              <option value="match" data-i18n="styleMatch">Match original style</option>
+              <option value="subtle" data-i18n="styleSubtle">Matched style with soft background</option>
+              <option value="highlight" data-i18n="styleHighlight">Matched style with blue text</option>
             </select>
           </label>
 
           <label>
-            Translation opacity <span class="value" data-value-for="bilingualOpacity"></span>
+            <span><span data-i18n="translationOpacity">Translation opacity</span> <span class="value" data-value-for="bilingualOpacity"></span></span>
             <input id="bilingualOpacity" type="range" min="0.45" max="1" step="0.05">
           </label>
 
           <label>
-            Maximum text blocks
+            <span data-i18n="maxBlocks">Maximum text blocks</span>
             <input id="bilingualMaxBlocks" type="number" min="10" max="500" step="10">
           </label>
 
           <label>
-            Minimum characters per block
+            <span data-i18n="minCharacters">Minimum characters per block</span>
             <input id="bilingualMinCharacters" type="number" min="2" max="120" step="1">
           </label>
         </div>
       </section>
 
       <section class="settings-section">
-        <h2>Speech</h2>
+        <h2 data-i18n="speech">Speech</h2>
         <div class="checks">
           <label class="check">
             <input id="autoSpeakSelection" type="checkbox">
-            Read selected text automatically
+            <span data-i18n="autoSpeakSelection">Read selected text automatically</span>
           </label>
           <label class="check">
             <input id="speakTranslatedText" type="checkbox">
-            Read translation automatically after selection
+            <span data-i18n="speakTranslatedText">Read translation automatically after selection</span>
           </label>
         </div>
         <div class="grid">
           <label>
-            Speech rate <span class="value" data-value-for="speechRate"></span>
+            <span><span data-i18n="speechRate">Speech rate</span> <span class="value" data-value-for="speechRate"></span></span>
             <input id="speechRate" type="range" min="0.6" max="1.8" step="0.1">
           </label>
           <label>
-            Speech pitch <span class="value" data-value-for="speechPitch"></span>
+            <span><span data-i18n="speechPitch">Speech pitch</span> <span class="value" data-value-for="speechPitch"></span></span>
             <input id="speechPitch" type="range" min="0.7" max="1.5" step="0.1">
           </label>
         </div>
       </section>
 
       <footer>
-        <button id="save" type="button">Save</button>
+        <button id="save" type="button" data-i18n="save">Save</button>
         <span id="status"></span>
       </footer>
     </main>
