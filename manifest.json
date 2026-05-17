@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Smart Bilingual Reader",
+  "description": "Selection translation, text-to-speech, and one-click bilingual webpages.",
+  "version": "0.1.0",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["https://translate.googleapis.com/*", "https://*/*", "http://*/*"],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_title": "Toggle bilingual page"
+  },
+  "commands": {
+    "toggle-bilingual-page": {
+      "suggested_key": {
+        "default": "Alt+Shift+T",
+        "mac": "Alt+Shift+T"
+      },
+      "description": "Toggle bilingual page"
+    }
+  },
+  "options_page": "src/options.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
