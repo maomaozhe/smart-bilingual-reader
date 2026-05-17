@@ -3,7 +3,11 @@ const DEFAULT_SETTINGS = {
   autoSpeakSelection: false,
   speakTranslatedText: false,
   speechRate: 1,
-  speechPitch: 1
+  speechPitch: 1,
+  bilingualStyleMode: "match",
+  bilingualOpacity: 0.82,
+  bilingualMaxBlocks: 180,
+  bilingualMinCharacters: 18
 };
 
 const SKIP_TAGS = new Set([
@@ -186,7 +190,7 @@ async function toggleBilingualPage() {
 
   bilingualBusy = true;
   try {
-    const nodes = collectTextNodes().slice(0, 180);
+    const nodes = collectTextNodes().slice(0, getBilingualMaxBlocks());
     if (!nodes.length) {
       toast("No readable text found");
       return { enabled: false, translated: 0 };
@@ -231,7 +235,7 @@ function collectTextNodes() {
 
 function isReadableTextNode(node) {
   const text = node.nodeValue.replace(/\s+/g, " ").trim();
-  if (text.length < 18 || text.length > 500) {
+  if (text.length < getBilingualMinCharacters() || text.length > 500) {
     return false;
   }
 
@@ -260,14 +264,15 @@ function insertTranslation(textNode, translated) {
   }
 
   const parent = textNode.parentElement;
-  if (!parent || parent.nextElementSibling?.classList.contains("sbr-bilingual-translation")) {
+  if (!parent || hasNearbyTranslation(textNode, parent)) {
     return false;
   }
 
-  const translation = document.createElement("span");
+  const translation = document.createElement(shouldUseBlockTranslation(parent) ? "div" : "span");
   translation.className = "sbr-bilingual-translation";
   translation.textContent = clean;
-  parent.insertAdjacentElement("afterend", translation);
+  applyMatchedTranslationStyle(translation, parent);
+  insertAfter(getTranslationAnchor(textNode, parent), translation);
   return true;
 }
 
@@ -345,4 +350,86 @@ function chunk(items, size) {
     chunks.push(items.slice(index, index + size));
   }
   return chunks;
+}
+
+function hasNearbyTranslation(textNode, parent) {
+  const anchor = getTranslationAnchor(textNode, parent);
+  return getNextElement(anchor)?.classList.contains("sbr-bilingual-translation");
+}
+
+function getTranslationAnchor(textNode, parent) {
+  if (parent.matches("li, dt, dd, figcaption, blockquote")) {
+    return textNode;
+  }
+
+  if (isInlineElement(parent)) {
+    const inlineGroup = parent.closest("p, li, h1, h2, h3, h4, h5, h6, article, section, div");
+    return inlineGroup && inlineGroup !== document.body ? inlineGroup : parent;
+  }
+
+  return parent;
+}
+
+function shouldUseBlockTranslation(parent) {
+  return !isInlineElement(parent);
+}
+
+function isInlineElement(element) {
+  const display = window.getComputedStyle(element).display;
+  return display.includes("inline");
+}
+
+function applyMatchedTranslationStyle(translation, source) {
+  const style = window.getComputedStyle(source);
+  const properties = [
+    "fontFamily",
+    "fontSize",
+    "fontStyle",
+    "fontWeight",
+    "fontStretch",
+    "fontVariant",
+    "letterSpacing",
+    "lineHeight",
+    "textAlign",
+    "textDecoration",
+    "textIndent",
+    "textTransform",
+    "wordSpacing",
+    "writingMode"
+  ];
+
+  for (const property of properties) {
+    translation.style[property] = style[property];
+  }
+
+  translation.style.color = settings.bilingualStyleMode === "highlight" ? "#2367c8" : style.color;
+  translation.style.opacity = String(getBilingualOpacity());
+  translation.style.background = settings.bilingualStyleMode === "subtle" ? "rgba(35, 103, 200, 0.08)" : "transparent";
+  translation.style.borderRadius = settings.bilingualStyleMode === "subtle" ? "4px" : "0";
+  translation.style.padding = settings.bilingualStyleMode === "subtle" ? "0.08em 0.18em" : "0";
+  translation.style.margin = shouldUseBlockTranslation(source) ? "0.16em 0 0.42em" : "0 0 0 0.32em";
+}
+
+function getBilingualOpacity() {
+  return clamp(Number(settings.bilingualOpacity) || 0.82, 0.45, 1);
+}
+
+function getBilingualMaxBlocks() {
+  return Math.max(10, Math.min(Number(settings.bilingualMaxBlocks) || 180, 500));
+}
+
+function getBilingualMinCharacters() {
+  return Math.max(2, Math.min(Number(settings.bilingualMinCharacters) || 18, 120));
+}
+
+function insertAfter(anchor, node) {
+  anchor.parentNode.insertBefore(node, anchor.nextSibling);
+}
+
+function getNextElement(anchor) {
+  let sibling = anchor.nextSibling;
+  while (sibling && sibling.nodeType !== Node.ELEMENT_NODE) {
+    sibling = sibling.nextSibling;
+  }
+  return sibling;
 }

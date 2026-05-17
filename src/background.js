@@ -6,7 +6,11 @@ const DEFAULT_SETTINGS = {
   autoSpeakSelection: false,
   speakTranslatedText: false,
   speechRate: 1,
-  speechPitch: 1
+  speechPitch: 1,
+  bilingualStyleMode: "match",
+  bilingualOpacity: 0.82,
+  bilingualMaxBlocks: 180,
+  bilingualMinCharacters: 18
 };
 
 const cache = new Map();

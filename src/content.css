@@ -65,11 +65,7 @@
 }
 
 .sbr-bilingual-translation {
-  display: block;
-  margin: 0.18em 0 0.4em;
-  color: #2367c8;
-  font-size: 0.94em;
-  line-height: 1.45;
+  box-sizing: border-box;
 }
 
 .sbr-page-toast {

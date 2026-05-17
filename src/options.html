@@ -7,62 +7,114 @@
     <link rel="stylesheet" href="options.css">
   </head>
   <body>
-    <main>
-      <h1>Smart Bilingual Reader</h1>
+    <main class="settings-shell">
+      <header class="page-header">
+        <div>
+          <h1>Smart Bilingual Reader</h1>
+          <p>Configure translation, bilingual page rendering, and reading behavior.</p>
+        </div>
+        <button id="reset" class="secondary" type="button">Restore defaults</button>
+      </header>
 
-      <section>
+      <section class="settings-section">
         <h2>Translation</h2>
-        <label>
-          Target language
-          <select id="targetLanguage">
-            <option value="zh-CN">Chinese Simplified</option>
-            <option value="zh-TW">Chinese Traditional</option>
-            <option value="en">English</option>
-            <option value="ja">Japanese</option>
-            <option value="ko">Korean</option>
-            <option value="fr">French</option>
-            <option value="de">German</option>
-            <option value="es">Spanish</option>
-          </select>
-        </label>
+        <div class="grid">
+          <label>
+            Target language
+            <select id="targetLanguage">
+              <option value="zh-CN">Chinese Simplified</option>
+              <option value="zh-TW">Chinese Traditional</option>
+              <option value="en">English</option>
+              <option value="ja">Japanese</option>
+              <option value="ko">Korean</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="es">Spanish</option>
+              <option value="ru">Russian</option>
+              <option value="it">Italian</option>
+            </select>
+          </label>
 
-        <label>
-          Provider
-          <select id="provider">
-            <option value="google">Google public endpoint</option>
-            <option value="libretranslate">LibreTranslate compatible endpoint</option>
-          </select>
-        </label>
+          <label>
+            Provider
+            <select id="provider">
+              <option value="google">Google public endpoint</option>
+              <option value="libretranslate">LibreTranslate compatible endpoint</option>
+            </select>
+          </label>
 
-        <label>
-          LibreTranslate URL
-          <input id="libreTranslateUrl" type="url" placeholder="https://libretranslate.example.com">
-        </label>
+          <label>
+            LibreTranslate URL
+            <input id="libreTranslateUrl" type="url" placeholder="https://libretranslate.example.com">
+          </label>
 
-        <label>
-          LibreTranslate API key
-          <input id="libreTranslateApiKey" type="password" autocomplete="off">
-        </label>
+          <label>
+            LibreTranslate API key
+            <input id="libreTranslateApiKey" type="password" autocomplete="off">
+          </label>
+        </div>
+
+        <div class="test-panel">
+          <label>
+            Test text
+            <textarea id="testText" rows="3">Hello, this extension keeps bilingual translations close to the original page style.</textarea>
+          </label>
+          <button id="testTranslate" class="secondary" type="button">Test translation</button>
+          <output id="testResult"></output>
+        </div>
       </section>
 
-      <section>
+      <section class="settings-section">
+        <h2>Bilingual Page</h2>
+        <div class="grid">
+          <label>
+            Translation style
+            <select id="bilingualStyleMode">
+              <option value="match">Match original style</option>
+              <option value="subtle">Matched style with soft background</option>
+              <option value="highlight">Matched style with blue text</option>
+            </select>
+          </label>
+
+          <label>
+            Translation opacity <span class="value" data-value-for="bilingualOpacity"></span>
+            <input id="bilingualOpacity" type="range" min="0.45" max="1" step="0.05">
+          </label>
+
+          <label>
+            Maximum text blocks
+            <input id="bilingualMaxBlocks" type="number" min="10" max="500" step="10">
+          </label>
+
+          <label>
+            Minimum characters per block
+            <input id="bilingualMinCharacters" type="number" min="2" max="120" step="1">
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-section">
         <h2>Speech</h2>
-        <label class="check">
-          <input id="autoSpeakSelection" type="checkbox">
-          Read selected text automatically
-        </label>
-        <label class="check">
-          <input id="speakTranslatedText" type="checkbox">
-          Read translation automatically after selection
-        </label>
-        <label>
-          Speech rate
-          <input id="speechRate" type="range" min="0.6" max="1.8" step="0.1">
-        </label>
-        <label>
-          Speech pitch
-          <input id="speechPitch" type="range" min="0.7" max="1.5" step="0.1">
-        </label>
+        <div class="checks">
+          <label class="check">
+            <input id="autoSpeakSelection" type="checkbox">
+            Read selected text automatically
+          </label>
+          <label class="check">
+            <input id="speakTranslatedText" type="checkbox">
+            Read translation automatically after selection
+          </label>
+        </div>
+        <div class="grid">
+          <label>
+            Speech rate <span class="value" data-value-for="speechRate"></span>
+            <input id="speechRate" type="range" min="0.6" max="1.8" step="0.1">
+          </label>
+          <label>
+            Speech pitch <span class="value" data-value-for="speechPitch"></span>
+            <input id="speechPitch" type="range" min="0.7" max="1.5" step="0.1">
+          </label>
+        </div>
       </section>
 
       <footer>

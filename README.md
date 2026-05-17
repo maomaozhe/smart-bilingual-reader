@@ -7,8 +7,9 @@ A lightweight Chrome extension for reading foreign-language webpages.
 - Translate selected text in a floating popup.
 - Speak selected text or translations with the browser's built-in speech engine.
 - Optional auto-read when text is selected.
-- One-click bilingual page mode that keeps the original text and inserts translations below it.
-- Configurable target language, speech rate, and translation provider.
+- One-click bilingual page mode that keeps the original text and inserts translations near it.
+- Bilingual translations inherit the original page's font, size, line height, color, alignment, and basic text style by default.
+- Configurable target language, speech rate, translation provider, bilingual style, opacity, and page translation limits.
 
 ## Install Locally
 
@@ -22,7 +23,7 @@ A lightweight Chrome extension for reading foreign-language webpages.
 - Select text on any page to open the translation popup.
 - Click the extension button once to translate the current page in place. Click it again to remove bilingual translations.
 - Press `Alt+Shift+T` to toggle bilingual mode from the keyboard.
-- Open the extension's **Options** page from Chrome's extension manager to change target language, auto speech, and translation settings.
+- Open the extension's **Options** page from Chrome's extension manager to change target language, auto speech, bilingual style, and translation settings.
 
 ## Translation Providers
 

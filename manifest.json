@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Smart Bilingual Reader",
   "description": "Selection translation, text-to-speech, and one-click bilingual webpages.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["https://translate.googleapis.com/*", "https://*/*", "http://*/*"],
   "background": {
