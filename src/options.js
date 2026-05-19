@@ -125,13 +125,27 @@ loadSettings();
 saveButton.addEventListener("click", saveSettings);
 resetButton.addEventListener("click", resetSettings);
 testButton.addEventListener("click", testTranslation);
-fields.uiLanguage.addEventListener("change", () => {
-  localize(resolveUiLanguage(fields.uiLanguage.value));
+fields.uiLanguage.addEventListener("change", async () => {
+  const language = fields.uiLanguage.value;
+  localize(resolveUiLanguage(language));
+  await chrome.storage.sync.set({ uiLanguage: language });
+});
+fields.targetLanguage.addEventListener("change", () => {
+  if (fields.uiLanguage.value === "auto") {
+    localize(resolveUiLanguage("auto"));
+  }
 });
 
 for (const field of Object.values(fields)) {
   if (field?.type === "range") {
-    field.addEventListener("input", updateRangeLabels);
+    field.addEventListener("input", () => {
+      updateRangeLabels();
+      void saveField(field);
+    });
+  } else if (field) {
+    field.addEventListener("change", () => {
+      void saveField(field);
+    });
   }
 }
 
@@ -173,6 +187,25 @@ async function saveSettings() {
   setTimeout(() => {
     statusNode.textContent = "";
   }, 1500);
+}
+
+async function saveField(field) {
+  const entry = Object.entries(fields).find(([, current]) => current === field);
+  if (!entry) {
+    return;
+  }
+
+  const [key] = entry;
+  let value;
+  if (field.type === "checkbox") {
+    value = field.checked;
+  } else if (field.type === "range" || field.type === "number") {
+    value = Number(field.value);
+  } else {
+    value = field.value.trim();
+  }
+
+  await chrome.storage.sync.set({ [key]: value });
 }
 
 async function resetSettings() {
@@ -220,6 +253,10 @@ function localize(language) {
 function resolveUiLanguage(language) {
   if (language === "en" || language === "zh-CN") {
     return language;
+  }
+
+  if (fields.targetLanguage?.value?.startsWith("zh")) {
+    return "zh-CN";
   }
 
   return navigator.language?.toLowerCase().startsWith("zh") ? "zh-CN" : "en";

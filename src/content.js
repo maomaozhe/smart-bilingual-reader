@@ -11,6 +11,31 @@ const DEFAULT_SETTINGS = {
   bilingualMinCharacters: 18
 };
 
+const I18N = {
+  en: {
+    translating: "Translating...",
+    noTranslation: "No translation returned.",
+    translationFailed: "Translation failed.",
+    extensionRequestFailed: "Extension request failed",
+    extensionContextInvalidated: "Extension was reloaded. Refresh this page and try again.",
+    bilingualOff: "Bilingual page off",
+    noReadableText: "No readable text found",
+    translatingBlocks: (count) => `Translating ${count} text blocks...`,
+    bilingualOn: (count) => `Bilingual page on: ${count} blocks translated`
+  },
+  "zh-CN": {
+    translating: "翻译中...",
+    noTranslation: "没有返回译文。",
+    translationFailed: "翻译失败。",
+    extensionRequestFailed: "扩展请求失败",
+    extensionContextInvalidated: "扩展已重新加载，请刷新当前网页后再试。",
+    bilingualOff: "已关闭双语网页",
+    noReadableText: "没有找到可翻译文本",
+    translatingBlocks: (count) => `正在翻译 ${count} 个文本块...`,
+    bilingualOn: (count) => `已开启双语网页：翻译 ${count} 个文本块`
+  }
+};
+
 const SKIP_TAGS = new Set([
   "SCRIPT",
   "STYLE",
@@ -82,6 +107,8 @@ async function init() {
     for (const [key, change] of Object.entries(changes)) {
       settings[key] = change.newValue;
     }
+
+    refreshSelectionCardStatus();
   });
 
   document.addEventListener("mouseup", handleSelection, true);
@@ -121,7 +148,7 @@ async function handleSelection() {
   }
 
   lastSelectionText = text;
-  showSelectionCard(text, "Translating...");
+  showSelectionCard(text, t("translating"));
 
   if (settings.autoSpeakSelection) {
     speak(text);
@@ -129,13 +156,13 @@ async function handleSelection() {
 
   try {
     const result = await translate(text);
-    showSelectionCard(text, result.translated || "No translation returned.");
+    showSelectionCard(text, result.translated || t("noTranslation"));
 
     if (settings.speakTranslatedText && result.translated) {
       speak(result.translated);
     }
   } catch (error) {
-    showSelectionCard(text, error.message || "Translation failed.");
+    showSelectionCard(text, error.message || t("translationFailed"));
   }
 }
 
@@ -172,39 +199,31 @@ function createSelectionCard() {
   card.className = "sbr-selection-card";
   card.hidden = true;
   card.innerHTML = `
-    <div class="sbr-selection-original"></div>
-    <div class="sbr-selection-translated"></div>
-    <div class="sbr-selection-actions">
-      <button class="sbr-selection-button sbr-icon-button" data-action="speak-original" title="Read selected text" aria-label="Read selected text">▶</button>
-      <button class="sbr-selection-button" data-action="copy" title="Copy translation" aria-label="Copy translation">Copy</button>
-      <span class="sbr-selection-status">${settings.targetLanguage}</span>
+    <div class="sbr-selection-original-row">
+      <span class="sbr-selection-original"></span>
+      <button class="sbr-speak-button" data-action="speak-original" title="朗读原文" aria-label="朗读原文">▶</button>
     </div>
+    <div class="sbr-selection-translated"></div>
+    <div class="sbr-selection-status"></div>
   `;
+  refreshSelectionCardStatus(card);
 
   card.addEventListener("mousedown", (event) => event.stopPropagation());
-  card.addEventListener("click", async (event) => {
-    const button = event.target.closest("button[data-action]");
+  card.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-action='speak-original']");
     if (!button) {
       return;
     }
 
-    const action = button.dataset.action;
-    const translated = card.querySelector(".sbr-selection-translated").textContent;
-    if (action === "speak-original") {
-      speak(card.querySelector(".sbr-selection-original").textContent);
-    } else if (action === "copy") {
-      await navigator.clipboard.writeText(translated);
-      card.querySelector(".sbr-selection-status").textContent = "Copied";
-      setTimeout(() => {
-        if (selectionCard === card) {
-          card.querySelector(".sbr-selection-status").textContent = settings.targetLanguage;
-        }
-      }, 1200);
-    }
+    speak(card.querySelector(".sbr-selection-original").textContent);
   });
 
   document.documentElement.append(card);
   return card;
+}
+
+function refreshSelectionCardStatus(card = selectionCard) {
+  card?.querySelector(".sbr-selection-status")?.replaceChildren(document.createTextNode(settings.targetLanguage));
 }
 
 function hideSelectionCard() {
@@ -221,7 +240,7 @@ async function toggleBilingualPage() {
   if (bilingualEnabled) {
     removeBilingualTranslations();
     bilingualEnabled = false;
-    toast("Bilingual page off");
+    toast(t("bilingualOff"));
     return { enabled: false };
   }
 
@@ -229,11 +248,11 @@ async function toggleBilingualPage() {
   try {
     const blocks = collectReadableBlocks().slice(0, getBilingualMaxBlocks());
     if (!blocks.length) {
-      toast("No readable text found");
+      toast(t("noReadableText"));
       return { enabled: false, translated: 0 };
     }
 
-    toast(`Translating ${blocks.length} text blocks...`);
+    toast(t("translatingBlocks", blocks.length));
     let translated = 0;
     for (const group of chunk(blocks, 8)) {
       const results = await translateBatch(group.map((block) => block.text));
@@ -245,7 +264,7 @@ async function toggleBilingualPage() {
     }
 
     bilingualEnabled = true;
-    toast(`Bilingual page on: ${translated} blocks translated`);
+    toast(t("bilingualOn", translated));
     return { enabled: true, translated };
   } finally {
     bilingualBusy = false;
@@ -399,11 +418,37 @@ function translateBatch(texts) {
 }
 
 async function sendRuntimeMessage(message) {
-  const response = await chrome.runtime.sendMessage(message);
+  let response;
+  try {
+    response = await chrome.runtime.sendMessage(message);
+  } catch (error) {
+    if (String(error?.message || error).includes("Extension context invalidated")) {
+      throw new Error(t("extensionContextInvalidated"));
+    }
+    throw error;
+  }
   if (!response?.ok) {
-    throw new Error(response?.error || "Extension request failed");
+    throw new Error(response?.error || t("extensionRequestFailed"));
   }
   return response.result;
+}
+
+function resolveUiLanguage(language = settings.uiLanguage) {
+  if (language === "en" || language === "zh-CN") {
+    return language;
+  }
+
+  if (settings.targetLanguage?.startsWith("zh")) {
+    return "zh-CN";
+  }
+
+  return navigator.language?.toLowerCase().startsWith("zh") ? "zh-CN" : "en";
+}
+
+function t(key, ...args) {
+  const dict = I18N[resolveUiLanguage()] || I18N.en;
+  const value = dict[key] || I18N.en[key] || key;
+  return typeof value === "function" ? value(...args) : value;
 }
 
 function speak(text) {
@@ -416,6 +461,7 @@ function speak(text) {
   const utterance = new SpeechSynthesisUtterance(clean);
   utterance.rate = Number(settings.speechRate) || 1;
   utterance.pitch = Number(settings.speechPitch) || 1;
+  utterance.lang = /[\u4e00-\u9fff]/.test(clean) ? "zh-CN" : "en-US";
   window.speechSynthesis.speak(utterance);
 }
 
