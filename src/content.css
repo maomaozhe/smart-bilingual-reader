@@ -74,6 +74,49 @@
   box-sizing: border-box;
 }
 
+.sbr-hover-speak-button,
+.sbr-page-speak-button {
+  position: fixed;
+  z-index: 2147483646;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: #172026;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #d8dee4;
+  border-radius: 50%;
+  box-shadow: 0 8px 22px rgba(20, 28, 36, 0.16);
+  cursor: pointer;
+  font: 10px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 120ms ease, transform 120ms ease, background 120ms ease;
+}
+
+.sbr-hover-speak-button:not([hidden]),
+.sbr-page-speak-button {
+  opacity: 0.72;
+  transform: translateY(0);
+}
+
+.sbr-hover-speak-button:hover,
+.sbr-page-speak-button:hover {
+  opacity: 1;
+  background: #ffffff;
+}
+
+.sbr-hover-speak-button[hidden] {
+  display: none;
+}
+
+.sbr-page-speak-button {
+  right: 16px;
+  bottom: 58px;
+}
+
 .sbr-page-toast {
   position: fixed;
   right: 16px;

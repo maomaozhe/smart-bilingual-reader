@@ -8,6 +8,8 @@ A lightweight Chrome extension for reading foreign-language webpages.
 
 - Translate selected text in a compact floating card.
 - Read the selected original text with the browser's built-in speech engine.
+- Show a compact read button when hovering readable text blocks.
+- Read the current page's main text from a small page-level button.
 - Copy translations from the selection card.
 - Optional auto-read when text is selected.
 - One-click bilingual page mode that keeps the original text and inserts translations near it.
@@ -43,12 +45,20 @@ A lightweight Chrome extension for reading foreign-language webpages.
 - Maximum text blocks per page.
 - Minimum characters per text block.
 - Speech behavior, rate, and pitch.
+- TTS provider: browser speech or Xiaomi MiMo V2.5 TTS.
+- MiMo API key, voice, speaking style instruction, and audio format.
 
 ## Translation Providers
 
 The default provider uses Google's public web translate endpoint and does not require an API key. It is convenient for personal testing, but availability depends on your network environment.
 
 You can switch to a LibreTranslate-compatible endpoint in Options if you prefer to use your own translation service.
+
+## MiMo TTS
+
+The options page can switch speech to Xiaomi MiMo V2.5 TTS. The extension does not include or commit an API key; configure your own key locally.
+
+The integration uses `POST https://api.xiaomimimo.com/v1/chat/completions` with the `mimo-v2.5-tts` model, then plays the returned audio in the page.
 
 ## Development
 

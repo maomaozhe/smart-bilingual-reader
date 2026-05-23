@@ -8,6 +8,11 @@ const DEFAULT_SETTINGS = {
   speechRate: 1,
   speechPitch: 1,
   uiLanguage: "auto",
+  ttsProvider: "browser",
+  mimoApiKey: "",
+  mimoVoice: "mimo_default",
+  mimoInstruction: "自然、清晰、适合阅读网页内容。",
+  mimoAudioFormat: "wav",
   bilingualStyleMode: "match",
   bilingualOpacity: 0.82,
   bilingualMaxBlocks: 180,
@@ -51,6 +56,14 @@ const I18N = {
     maxBlocks: "Maximum text blocks",
     minCharacters: "Minimum characters per block",
     speech: "Speech",
+    ttsProvider: "TTS provider",
+    ttsBrowser: "Browser built-in speech",
+    ttsMimo: "Xiaomi MiMo V2.5 TTS",
+    mimoApiKey: "MiMo API Key",
+    mimoVoice: "MiMo voice",
+    mimoInstruction: "MiMo speaking style",
+    mimoAudioFormat: "MiMo audio format",
+    testSpeech: "Test speech",
     autoSpeakSelection: "Read selected text automatically",
     speakTranslatedText: "Read translation automatically after selection",
     speechRate: "Speech rate",
@@ -98,6 +111,14 @@ const I18N = {
     maxBlocks: "单页最大翻译块数",
     minCharacters: "每块最少字符数",
     speech: "朗读",
+    ttsProvider: "朗读服务",
+    ttsBrowser: "浏览器内置朗读",
+    ttsMimo: "小米 MiMo V2.5 TTS",
+    mimoApiKey: "MiMo API Key",
+    mimoVoice: "MiMo 音色",
+    mimoInstruction: "MiMo 朗读风格",
+    mimoAudioFormat: "MiMo 音频格式",
+    testSpeech: "测试朗读",
     autoSpeakSelection: "划词后自动朗读原文",
     speakTranslatedText: "划词翻译后自动朗读译文",
     speechRate: "朗读速度",
@@ -117,6 +138,7 @@ const fields = Object.fromEntries(
 const saveButton = document.getElementById("save");
 const resetButton = document.getElementById("reset");
 const testButton = document.getElementById("testTranslate");
+const testSpeechButton = document.getElementById("testSpeech");
 const statusNode = document.getElementById("status");
 const testText = document.getElementById("testText");
 const testResult = document.getElementById("testResult");
@@ -125,6 +147,7 @@ loadSettings();
 saveButton.addEventListener("click", saveSettings);
 resetButton.addEventListener("click", resetSettings);
 testButton.addEventListener("click", testTranslation);
+testSpeechButton.addEventListener("click", testSpeech);
 fields.uiLanguage.addEventListener("change", async () => {
   const language = fields.uiLanguage.value;
   localize(resolveUiLanguage(language));
@@ -231,6 +254,34 @@ async function testTranslation() {
     }
 
     testResult.textContent = response.result.translated || t("noTranslation");
+  } catch (error) {
+    testResult.textContent = error.message;
+  }
+}
+
+async function testSpeech() {
+  testResult.textContent = t("translating");
+  try {
+    await saveSettings();
+    const response = await chrome.runtime.sendMessage({
+      type: "synthesizeSpeech",
+      text: testText.value
+    });
+
+    if (!response?.ok) {
+      throw new Error(response?.error || "Speech synthesis failed");
+    }
+
+    if (response.result.provider !== "mimo") {
+      const utterance = new SpeechSynthesisUtterance(testText.value);
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    } else {
+      const audio = new Audio(`data:${response.result.mimeType};base64,${response.result.audioBase64}`);
+      await audio.play();
+    }
+
+    testResult.textContent = t("saved");
   } catch (error) {
     testResult.textContent = error.message;
   }

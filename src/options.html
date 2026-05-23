@@ -104,6 +104,49 @@
 
       <section class="settings-section">
         <h2 data-i18n="speech">Speech</h2>
+        <div class="grid">
+          <label>
+            <span data-i18n="ttsProvider">TTS provider</span>
+            <select id="ttsProvider">
+              <option value="browser" data-i18n="ttsBrowser">Browser built-in speech</option>
+              <option value="mimo" data-i18n="ttsMimo">Xiaomi MiMo V2.5 TTS</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="mimoApiKey">MiMo API Key</span>
+            <input id="mimoApiKey" type="password" autocomplete="off">
+          </label>
+
+          <label>
+            <span data-i18n="mimoVoice">MiMo voice</span>
+            <select id="mimoVoice">
+              <option value="mimo_default">mimo_default</option>
+              <option value="冰糖">冰糖</option>
+              <option value="茉莉">茉莉</option>
+              <option value="苏打">苏打</option>
+              <option value="白桦">白桦</option>
+              <option value="Mia">Mia</option>
+              <option value="Chloe">Chloe</option>
+              <option value="Milo">Milo</option>
+              <option value="Dean">Dean</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="mimoAudioFormat">MiMo audio format</span>
+            <select id="mimoAudioFormat">
+              <option value="wav">wav</option>
+              <option value="mp3">mp3</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          <span data-i18n="mimoInstruction">MiMo speaking style</span>
+          <textarea id="mimoInstruction" rows="3"></textarea>
+        </label>
+
         <div class="checks">
           <label class="check">
             <input id="autoSpeakSelection" type="checkbox">
@@ -124,6 +167,7 @@
             <input id="speechPitch" type="range" min="0.7" max="1.5" step="0.1">
           </label>
         </div>
+        <button id="testSpeech" class="secondary" type="button" data-i18n="testSpeech">Test speech</button>
       </section>
 
       <footer>

@@ -5,6 +5,11 @@ const DEFAULT_SETTINGS = {
   speechRate: 1,
   speechPitch: 1,
   uiLanguage: "auto",
+  ttsProvider: "browser",
+  mimoApiKey: "",
+  mimoVoice: "mimo_default",
+  mimoInstruction: "自然、清晰、适合阅读网页内容。",
+  mimoAudioFormat: "wav",
   bilingualStyleMode: "match",
   bilingualOpacity: 0.82,
   bilingualMaxBlocks: 180,
@@ -20,6 +25,10 @@ const I18N = {
     extensionContextInvalidated: "Extension was reloaded. Refresh this page and try again.",
     bilingualOff: "Bilingual page off",
     noReadableText: "No readable text found",
+    reading: "Reading...",
+    readBlock: "Read this block",
+    readPage: "Read page",
+    ttsFailed: "Speech synthesis failed.",
     translatingBlocks: (count) => `Translating ${count} text blocks...`,
     bilingualOn: (count) => `Bilingual page on: ${count} blocks translated`
   },
@@ -31,6 +40,10 @@ const I18N = {
     extensionContextInvalidated: "扩展已重新加载，请刷新当前网页后再试。",
     bilingualOff: "已关闭双语网页",
     noReadableText: "没有找到可翻译文本",
+    reading: "朗读中...",
+    readBlock: "朗读这一段",
+    readPage: "朗读全文",
+    ttsFailed: "语音合成失败。",
     translatingBlocks: (count) => `正在翻译 ${count} 个文本块...`,
     bilingualOn: (count) => `已开启双语网页：翻译 ${count} 个文本块`
   }
@@ -94,6 +107,11 @@ let selectionCard;
 let lastSelectionText = "";
 let bilingualEnabled = false;
 let bilingualBusy = false;
+let hoverSpeakButton;
+let pageSpeakButton;
+let hoverBlock;
+let currentAudio;
+const speechCache = new Map();
 
 init();
 
@@ -115,6 +133,10 @@ async function init() {
   document.addEventListener("keyup", handleSelectionKeyup, true);
   document.addEventListener("scroll", hideSelectionCard, true);
   document.addEventListener("mousedown", handleDocumentMouseDown, true);
+  document.addEventListener("mouseover", handleReadableBlockHover, true);
+  document.addEventListener("scroll", repositionHoverSpeakButton, true);
+  window.addEventListener("resize", repositionHoverSpeakButton);
+  createPageSpeakButton();
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -127,7 +149,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message?.type === "speakSelection") {
     const text = getSelectedText() || lastSelectionText;
-    speak(text);
+    void speak(text);
     sendResponse({ ok: true });
   }
 
@@ -151,7 +173,7 @@ async function handleSelection() {
   showSelectionCard(text, t("translating"));
 
   if (settings.autoSpeakSelection) {
-    speak(text);
+    void speak(text);
   }
 
   try {
@@ -159,7 +181,7 @@ async function handleSelection() {
     showSelectionCard(text, result.translated || t("noTranslation"));
 
     if (settings.speakTranslatedText && result.translated) {
-      speak(result.translated);
+      void speak(result.translated);
     }
   } catch (error) {
     showSelectionCard(text, error.message || t("translationFailed"));
@@ -215,7 +237,7 @@ function createSelectionCard() {
       return;
     }
 
-    speak(card.querySelector(".sbr-selection-original").textContent);
+    void speak(card.querySelector(".sbr-selection-original").textContent);
   });
 
   document.documentElement.append(card);
@@ -230,6 +252,85 @@ function hideSelectionCard() {
   if (selectionCard) {
     selectionCard.hidden = true;
   }
+}
+
+function createPageSpeakButton() {
+  pageSpeakButton = document.createElement("button");
+  pageSpeakButton.className = "sbr-page-speak-button";
+  pageSpeakButton.type = "button";
+  pageSpeakButton.textContent = "▶";
+  pageSpeakButton.title = t("readPage");
+  pageSpeakButton.setAttribute("aria-label", t("readPage"));
+  pageSpeakButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    void speakPage();
+  });
+  document.documentElement.append(pageSpeakButton);
+}
+
+function handleReadableBlockHover(event) {
+  if (event.target.closest(".sbr-selection-card, .sbr-page-toast, .sbr-hover-speak-button, .sbr-page-speak-button")) {
+    return;
+  }
+
+  const block = event.target.closest(READABLE_BLOCK_SELECTOR);
+  if (!block || !isReadableBlock(block)) {
+    return;
+  }
+
+  hoverBlock = block;
+  showHoverSpeakButton(block);
+}
+
+function showHoverSpeakButton(block) {
+  hoverSpeakButton ||= createHoverSpeakButton();
+  hoverSpeakButton.hidden = false;
+  hoverSpeakButton.title = t("readBlock");
+  hoverSpeakButton.setAttribute("aria-label", t("readBlock"));
+  repositionHoverSpeakButton(block);
+}
+
+function createHoverSpeakButton() {
+  const button = document.createElement("button");
+  button.className = "sbr-hover-speak-button";
+  button.type = "button";
+  button.textContent = "▶";
+  button.hidden = true;
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (hoverBlock) {
+      void speak(getElementText(hoverBlock));
+    }
+  });
+  document.documentElement.append(button);
+  return button;
+}
+
+function repositionHoverSpeakButton(block = hoverBlock) {
+  if (!hoverSpeakButton || hoverSpeakButton.hidden || !block) {
+    return;
+  }
+
+  const rect = block.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) {
+    hoverSpeakButton.hidden = true;
+    return;
+  }
+
+  const top = clamp(rect.top + 2, 8, window.innerHeight - 34);
+  const left = clamp(rect.left - 32, 8, window.innerWidth - 34);
+  hoverSpeakButton.style.top = `${top}px`;
+  hoverSpeakButton.style.left = `${left}px`;
+}
+
+async function speakPage() {
+  const text = collectReadableBlocks()
+    .map((block) => block.text)
+    .join("\n\n")
+    .slice(0, 4000);
+  await speak(text);
 }
 
 async function toggleBilingualPage() {
@@ -451,7 +552,7 @@ function t(key, ...args) {
   return typeof value === "function" ? value(...args) : value;
 }
 
-function speak(text) {
+function speakWithBrowser(text) {
   const clean = String(text || "").trim();
   if (!clean) {
     return;
@@ -463,6 +564,55 @@ function speak(text) {
   utterance.pitch = Number(settings.speechPitch) || 1;
   utterance.lang = /[\u4e00-\u9fff]/.test(clean) ? "zh-CN" : "en-US";
   window.speechSynthesis.speak(utterance);
+}
+
+async function speak(text) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  if (!clean) {
+    return;
+  }
+
+  stopSpeech();
+  if (settings.ttsProvider !== "mimo") {
+    speakWithBrowser(clean);
+    return;
+  }
+
+  try {
+    toast(t("reading"));
+    const result = await synthesizeSpeech(clean);
+    if (result.provider !== "mimo") {
+      speakWithBrowser(clean);
+      return;
+    }
+
+    const audio = new Audio(`data:${result.mimeType};base64,${result.audioBase64}`);
+    currentAudio = audio;
+    await audio.play();
+  } catch (error) {
+    toast(error.message || t("ttsFailed"));
+    speakWithBrowser(clean);
+  }
+}
+
+function stopSpeech() {
+  currentAudio?.pause();
+  currentAudio = null;
+  window.speechSynthesis.cancel();
+}
+
+function synthesizeSpeech(text) {
+  const key = `${settings.ttsProvider}:${settings.mimoVoice}:${settings.mimoInstruction}:${text}`;
+  if (speechCache.has(key)) {
+    return speechCache.get(key);
+  }
+
+  const request = sendRuntimeMessage({ type: "synthesizeSpeech", text });
+  speechCache.set(key, request);
+  if (speechCache.size > 30) {
+    speechCache.delete(speechCache.keys().next().value);
+  }
+  return request;
 }
 
 function getSelectedText() {

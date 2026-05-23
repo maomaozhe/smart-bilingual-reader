@@ -8,6 +8,11 @@ const DEFAULT_SETTINGS = {
   speechRate: 1,
   speechPitch: 1,
   uiLanguage: "auto",
+  ttsProvider: "browser",
+  mimoApiKey: "",
+  mimoVoice: "mimo_default",
+  mimoInstruction: "自然、清晰、适合阅读网页内容。",
+  mimoAudioFormat: "wav",
   bilingualStyleMode: "match",
   bilingualOpacity: 0.82,
   bilingualMaxBlocks: 180,
@@ -53,6 +58,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "translateBatch") {
     translateBatch(message.texts, message.options)
+      .then((result) => sendResponse({ ok: true, result }))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
+  if (message.type === "synthesizeSpeech") {
+    synthesizeSpeech(message.text, message.options)
       .then((result) => sendResponse({ ok: true, result }))
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
@@ -110,6 +122,70 @@ async function translateText(text, options = {}) {
   return result;
 }
 
+async function synthesizeSpeech(text, options = {}) {
+  const normalizedText = normalizeInput(text);
+  if (!normalizedText) {
+    throw new Error("No text to synthesize");
+  }
+
+  const settings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
+  const merged = { ...settings, ...options };
+
+  if (merged.ttsProvider !== "mimo") {
+    return { provider: "browser", text: normalizedText };
+  }
+
+  return synthesizeWithMimo(normalizedText, merged);
+}
+
+async function synthesizeWithMimo(text, settings) {
+  const apiKey = settings.mimoApiKey?.trim();
+  if (!apiKey) {
+    throw new Error("MiMo API Key is not configured");
+  }
+
+  const response = await fetch("https://api.xiaomimimo.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": apiKey
+    },
+    body: JSON.stringify({
+      model: "mimo-v2.5-tts",
+      messages: [
+        {
+          role: "user",
+          content: settings.mimoInstruction || "自然、清晰、适合阅读网页内容。"
+        },
+        {
+          role: "assistant",
+          content: text.slice(0, 4000)
+        }
+      ],
+      audio: {
+        format: settings.mimoAudioFormat || "wav",
+        voice: settings.mimoVoice || "mimo_default"
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`MiMo TTS failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const audio = data?.choices?.[0]?.message?.audio;
+  if (!audio?.data) {
+    throw new Error("MiMo TTS returned no audio");
+  }
+
+  return {
+    provider: "mimo",
+    mimeType: getAudioMimeType(settings.mimoAudioFormat),
+    audioBase64: audio.data
+  };
+}
+
 async function translateWithGoogleWeb(text, settings) {
   const url = new URL("https://translate.googleapis.com/translate_a/single");
   url.searchParams.set("client", "gtx");
@@ -164,6 +240,18 @@ function normalizeInput(text) {
 
 function cleanTranslation(text) {
   return String(text || "").replace(/\s+/g, " ").trim();
+}
+
+function getAudioMimeType(format) {
+  if (format === "mp3") {
+    return "audio/mpeg";
+  }
+
+  if (format === "pcm16") {
+    return "audio/wav";
+  }
+
+  return "audio/wav";
 }
 
 function remember(key, value) {
