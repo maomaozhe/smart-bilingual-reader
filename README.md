@@ -56,7 +56,8 @@ Chrome 双语阅读扩展：划词翻译、划词朗读、一键网页双语。
 - 每块最少字符数：过滤过短文本，减少误翻导航和按钮。
 - 朗读设置：自动朗读原文、自动朗读译文、朗读速度、朗读音调。
 - TTS 服务：浏览器内置朗读，或小米 MiMo V2.5 TTS。
-- MiMo 配置：API Key、音色、朗读风格指令、音频格式。
+- MiMo 配置：模型、API Key、朗读语言、音色、朗读风格指令、音频格式。
+- MiMo 试听：配置页支持「试听中文」和「试听英文」，方便分别验证中文/英文音色。
 
 ## 翻译服务说明
 
@@ -68,7 +69,7 @@ Chrome 双语阅读扩展：划词翻译、划词朗读、一键网页双语。
 
 配置页中可以把朗读服务切换为「小米 MiMo V2.5 TTS」。扩展不会内置或提交 API Key，你需要在本机配置页中填写自己的 Key。
 
-当前接入方式参考小米 MiMo 文档：`POST https://api.xiaomimimo.com/v1/chat/completions`，模型为 `mimo-v2.5-tts`，返回音频后在页面内播放。
+当前接入方式参考小米 MiMo 文档：`POST https://api.xiaomimimo.com/v1/chat/completions`，可选择 `mimo-v2-tts` 或 `mimo-v2.5-tts`，返回音频后在页面内播放。旧版 `mimo-v2-tts` 支持 `mimo_default`、`default_zh`、`default_en` 音色。
 
 ## 开发
 

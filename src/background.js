@@ -9,8 +9,10 @@ const DEFAULT_SETTINGS = {
   speechPitch: 1,
   uiLanguage: "auto",
   ttsProvider: "browser",
+  mimoModel: "mimo-v2-tts",
   mimoApiKey: "",
-  mimoVoice: "mimo_default",
+  mimoSpeechLanguage: "auto",
+  mimoVoice: "auto",
   mimoInstruction: "自然、清晰、适合阅读网页内容。",
   mimoAudioFormat: "wav",
   bilingualStyleMode: "match",
@@ -151,7 +153,7 @@ async function synthesizeWithMimo(text, settings) {
       "api-key": apiKey
     },
     body: JSON.stringify({
-      model: "mimo-v2.5-tts",
+      model: settings.mimoModel || "mimo-v2-tts",
       messages: [
         {
           role: "user",
@@ -164,7 +166,7 @@ async function synthesizeWithMimo(text, settings) {
       ],
       audio: {
         format: settings.mimoAudioFormat || "wav",
-        voice: settings.mimoVoice || "mimo_default"
+        voice: resolveMimoVoice(text, settings)
       }
     })
   });
@@ -184,6 +186,19 @@ async function synthesizeWithMimo(text, settings) {
     mimeType: getAudioMimeType(settings.mimoAudioFormat),
     audioBase64: audio.data
   };
+}
+
+function resolveMimoVoice(text, settings) {
+  if (settings.mimoVoice && settings.mimoVoice !== "auto") {
+    return settings.mimoVoice;
+  }
+
+  const language = settings.mimoSpeechLanguage === "auto" ? detectSpeechLanguage(text) : settings.mimoSpeechLanguage;
+  return language === "en" ? "default_en" : "default_zh";
+}
+
+function detectSpeechLanguage(text) {
+  return /[\u4e00-\u9fff]/.test(text) ? "zh" : "en";
 }
 
 async function translateWithGoogleWeb(text, settings) {

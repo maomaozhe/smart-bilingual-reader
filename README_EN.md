@@ -46,7 +46,8 @@ A lightweight Chrome extension for reading foreign-language webpages.
 - Minimum characters per text block.
 - Speech behavior, rate, and pitch.
 - TTS provider: browser speech or Xiaomi MiMo V2.5 TTS.
-- MiMo API key, voice, speaking style instruction, and audio format.
+- MiMo model, API key, speech language, voice, speaking style instruction, and audio format.
+- Chinese and English speech preview buttons in Options.
 
 ## Translation Providers
 
@@ -58,7 +59,7 @@ You can switch to a LibreTranslate-compatible endpoint in Options if you prefer 
 
 The options page can switch speech to Xiaomi MiMo V2.5 TTS. The extension does not include or commit an API key; configure your own key locally.
 
-The integration uses `POST https://api.xiaomimimo.com/v1/chat/completions` with the `mimo-v2.5-tts` model, then plays the returned audio in the page.
+The integration uses `POST https://api.xiaomimimo.com/v1/chat/completions`, supports `mimo-v2-tts` and `mimo-v2.5-tts`, then plays the returned audio in the page. The legacy `mimo-v2-tts` model supports `mimo_default`, `default_zh`, and `default_en` voices.
 
 ## Development
 

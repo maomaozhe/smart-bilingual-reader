@@ -9,8 +9,10 @@ const DEFAULT_SETTINGS = {
   speechPitch: 1,
   uiLanguage: "auto",
   ttsProvider: "browser",
+  mimoModel: "mimo-v2-tts",
   mimoApiKey: "",
-  mimoVoice: "mimo_default",
+  mimoSpeechLanguage: "auto",
+  mimoVoice: "auto",
   mimoInstruction: "自然、清晰、适合阅读网页内容。",
   mimoAudioFormat: "wav",
   bilingualStyleMode: "match",
@@ -58,12 +60,23 @@ const I18N = {
     speech: "Speech",
     ttsProvider: "TTS provider",
     ttsBrowser: "Browser built-in speech",
-    ttsMimo: "Xiaomi MiMo V2.5 TTS",
+    ttsMimo: "Xiaomi MiMo TTS",
+    mimoModel: "MiMo model",
     mimoApiKey: "MiMo API Key",
+    mimoSpeechLanguage: "Speech language",
+    speechLangAuto: "Auto",
+    speechLangZh: "Chinese",
+    speechLangEn: "English",
     mimoVoice: "MiMo voice",
+    voiceAuto: "Auto by language",
+    voiceMimoDefault: "MiMo default",
+    voiceDefaultZh: "Chinese female voice",
+    voiceDefaultEn: "English female voice",
     mimoInstruction: "MiMo speaking style",
     mimoAudioFormat: "MiMo audio format",
-    testSpeech: "Test speech",
+    previewZh: "Preview Chinese",
+    previewEn: "Preview English",
+    previewing: "Previewing...",
     autoSpeakSelection: "Read selected text automatically",
     speakTranslatedText: "Read translation automatically after selection",
     speechRate: "Speech rate",
@@ -113,12 +126,23 @@ const I18N = {
     speech: "朗读",
     ttsProvider: "朗读服务",
     ttsBrowser: "浏览器内置朗读",
-    ttsMimo: "小米 MiMo V2.5 TTS",
+    ttsMimo: "小米 MiMo TTS",
+    mimoModel: "MiMo 模型",
     mimoApiKey: "MiMo API Key",
+    mimoSpeechLanguage: "朗读语言",
+    speechLangAuto: "自动",
+    speechLangZh: "中文",
+    speechLangEn: "英文",
     mimoVoice: "MiMo 音色",
+    voiceAuto: "根据语言自动选择",
+    voiceMimoDefault: "MiMo 默认音色",
+    voiceDefaultZh: "中文女声",
+    voiceDefaultEn: "英文女声",
     mimoInstruction: "MiMo 朗读风格",
     mimoAudioFormat: "MiMo 音频格式",
-    testSpeech: "测试朗读",
+    previewZh: "试听中文",
+    previewEn: "试听英文",
+    previewing: "试听中...",
     autoSpeakSelection: "划词后自动朗读原文",
     speakTranslatedText: "划词翻译后自动朗读译文",
     speechRate: "朗读速度",
@@ -138,7 +162,8 @@ const fields = Object.fromEntries(
 const saveButton = document.getElementById("save");
 const resetButton = document.getElementById("reset");
 const testButton = document.getElementById("testTranslate");
-const testSpeechButton = document.getElementById("testSpeech");
+const previewZhButton = document.getElementById("previewZh");
+const previewEnButton = document.getElementById("previewEn");
 const statusNode = document.getElementById("status");
 const testText = document.getElementById("testText");
 const testResult = document.getElementById("testResult");
@@ -147,7 +172,8 @@ loadSettings();
 saveButton.addEventListener("click", saveSettings);
 resetButton.addEventListener("click", resetSettings);
 testButton.addEventListener("click", testTranslation);
-testSpeechButton.addEventListener("click", testSpeech);
+previewZhButton.addEventListener("click", () => previewSpeech("zh"));
+previewEnButton.addEventListener("click", () => previewSpeech("en"));
 fields.uiLanguage.addEventListener("change", async () => {
   const language = fields.uiLanguage.value;
   localize(resolveUiLanguage(language));
@@ -259,13 +285,27 @@ async function testTranslation() {
   }
 }
 
-async function testSpeech() {
-  testResult.textContent = t("translating");
+async function previewSpeech(language) {
+  testResult.textContent = t("previewing");
+  const text =
+    language === "zh"
+      ? "你好，这是中文语音试听。"
+      : "Hello, this is an English speech preview.";
+
   try {
     await saveSettings();
     const response = await chrome.runtime.sendMessage({
       type: "synthesizeSpeech",
-      text: testText.value
+      text,
+      options: {
+        ttsProvider: fields.ttsProvider.value,
+        mimoModel: fields.mimoModel.value,
+        mimoApiKey: fields.mimoApiKey.value.trim(),
+        mimoSpeechLanguage: language,
+        mimoVoice: fields.mimoVoice.value,
+        mimoInstruction: fields.mimoInstruction.value.trim(),
+        mimoAudioFormat: fields.mimoAudioFormat.value
+      }
     });
 
     if (!response?.ok) {
@@ -273,7 +313,8 @@ async function testSpeech() {
     }
 
     if (response.result.provider !== "mimo") {
-      const utterance = new SpeechSynthesisUtterance(testText.value);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = language === "zh" ? "zh-CN" : "en-US";
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     } else {

@@ -109,7 +109,15 @@
             <span data-i18n="ttsProvider">TTS provider</span>
             <select id="ttsProvider">
               <option value="browser" data-i18n="ttsBrowser">Browser built-in speech</option>
-              <option value="mimo" data-i18n="ttsMimo">Xiaomi MiMo V2.5 TTS</option>
+              <option value="mimo" data-i18n="ttsMimo">Xiaomi MiMo TTS</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="mimoModel">MiMo model</span>
+            <select id="mimoModel">
+              <option value="mimo-v2-tts">mimo-v2-tts</option>
+              <option value="mimo-v2.5-tts">mimo-v2.5-tts</option>
             </select>
           </label>
 
@@ -119,17 +127,21 @@
           </label>
 
           <label>
+            <span data-i18n="mimoSpeechLanguage">Speech language</span>
+            <select id="mimoSpeechLanguage">
+              <option value="auto" data-i18n="speechLangAuto">Auto</option>
+              <option value="zh" data-i18n="speechLangZh">Chinese</option>
+              <option value="en" data-i18n="speechLangEn">English</option>
+            </select>
+          </label>
+
+          <label>
             <span data-i18n="mimoVoice">MiMo voice</span>
             <select id="mimoVoice">
-              <option value="mimo_default">mimo_default</option>
-              <option value="冰糖">冰糖</option>
-              <option value="茉莉">茉莉</option>
-              <option value="苏打">苏打</option>
-              <option value="白桦">白桦</option>
-              <option value="Mia">Mia</option>
-              <option value="Chloe">Chloe</option>
-              <option value="Milo">Milo</option>
-              <option value="Dean">Dean</option>
+              <option value="auto" data-i18n="voiceAuto">Auto by language</option>
+              <option value="mimo_default" data-i18n="voiceMimoDefault">MiMo default</option>
+              <option value="default_zh" data-i18n="voiceDefaultZh">Chinese female voice</option>
+              <option value="default_en" data-i18n="voiceDefaultEn">English female voice</option>
             </select>
           </label>
 
@@ -167,7 +179,10 @@
             <input id="speechPitch" type="range" min="0.7" max="1.5" step="0.1">
           </label>
         </div>
-        <button id="testSpeech" class="secondary" type="button" data-i18n="testSpeech">Test speech</button>
+        <div class="button-row">
+          <button id="previewZh" class="secondary" type="button" data-i18n="previewZh">Preview Chinese</button>
+          <button id="previewEn" class="secondary" type="button" data-i18n="previewEn">Preview English</button>
+        </div>
       </section>
 
       <footer>

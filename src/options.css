@@ -121,6 +121,12 @@ output {
   border-radius: 6px;
 }
 
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 footer {
   display: flex;
   align-items: center;

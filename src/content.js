@@ -6,8 +6,10 @@ const DEFAULT_SETTINGS = {
   speechPitch: 1,
   uiLanguage: "auto",
   ttsProvider: "browser",
+  mimoModel: "mimo-v2-tts",
   mimoApiKey: "",
-  mimoVoice: "mimo_default",
+  mimoSpeechLanguage: "auto",
+  mimoVoice: "auto",
   mimoInstruction: "自然、清晰、适合阅读网页内容。",
   mimoAudioFormat: "wav",
   bilingualStyleMode: "match",
@@ -602,7 +604,7 @@ function stopSpeech() {
 }
 
 function synthesizeSpeech(text) {
-  const key = `${settings.ttsProvider}:${settings.mimoVoice}:${settings.mimoInstruction}:${text}`;
+  const key = `${settings.ttsProvider}:${settings.mimoModel}:${settings.mimoSpeechLanguage}:${settings.mimoVoice}:${settings.mimoInstruction}:${text}`;
   if (speechCache.has(key)) {
     return speechCache.get(key);
   }
