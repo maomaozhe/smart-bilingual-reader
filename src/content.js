@@ -11,7 +11,7 @@ const DEFAULT_SETTINGS = {
   mimoSpeechLanguage: "auto",
   mimoVoice: "auto",
   mimoInstruction: "自然、清晰、适合阅读网页内容。",
-  mimoAudioFormat: "wav",
+  mimoAudioFormat: "mp3",
   bilingualStyleMode: "match",
   bilingualOpacity: 0.82,
   bilingualMaxBlocks: 180,
@@ -113,6 +113,7 @@ let hoverSpeakButton;
 let pageSpeakButton;
 let hoverBlock;
 let currentAudio;
+let currentAudioCtx;
 const speechCache = new Map();
 
 init();
@@ -580,26 +581,56 @@ async function speak(text) {
     return;
   }
 
+  // Create AudioContext BEFORE async await to preserve user gesture
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === "suspended") {
+    await ctx.resume();
+  }
+
   try {
     toast(t("reading"));
     const result = await synthesizeSpeech(clean);
     if (result.provider !== "mimo") {
+      ctx.close();
       speakWithBrowser(clean);
       return;
     }
 
-    const audio = new Audio(`data:${result.mimeType};base64,${result.audioBase64}`);
-    currentAudio = audio;
-    await audio.play();
+    const binStr = atob(result.audioBase64);
+    const bytes = new Uint8Array(binStr.length);
+    for (let i = 0; i < binStr.length; i++) {
+      bytes[i] = binStr.charCodeAt(i);
+    }
+
+    currentAudioCtx = ctx;
+    const buffer = await ctx.decodeAudioData(bytes.buffer);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.onended = () => {
+      ctx.close();
+      currentAudioCtx = null;
+      currentAudio = null;
+    };
+    currentAudio = { source, ctx };
+    source.start(0);
   } catch (error) {
+    ctx.close();
     toast(error.message || t("ttsFailed"));
     speakWithBrowser(clean);
   }
 }
 
 function stopSpeech() {
-  currentAudio?.pause();
-  currentAudio = null;
+  if (currentAudio) {
+    try { currentAudio.source?.stop(); } catch (_) { /* ignore */ }
+    try { currentAudio.ctx?.close(); } catch (_) { /* ignore */ }
+    currentAudio = null;
+  }
+  if (currentAudioCtx) {
+    try { currentAudioCtx.close(); } catch (_) { /* ignore */ }
+    currentAudioCtx = null;
+  }
   window.speechSynthesis.cancel();
 }
 

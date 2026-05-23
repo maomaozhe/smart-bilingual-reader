@@ -14,7 +14,7 @@ const DEFAULT_SETTINGS = {
   mimoSpeechLanguage: "auto",
   mimoVoice: "auto",
   mimoInstruction: "自然、清晰、适合阅读网页内容。",
-  mimoAudioFormat: "wav",
+  mimoAudioFormat: "mp3",
   bilingualStyleMode: "match",
   bilingualOpacity: 0.82,
   bilingualMaxBlocks: 180,
@@ -146,14 +146,19 @@ async function synthesizeWithMimo(text, settings) {
     throw new Error("MiMo API Key is not configured");
   }
 
-  const response = await fetch("https://api.xiaomimimo.com/v1/chat/completions", {
+  const baseUrl = apiKey.startsWith("tp-")
+    ? "https://token-plan-cn.xiaomimimo.com/v1"
+    : "https://api.xiaomimimo.com/v1";
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "api-key": apiKey
+      "Authorization": `Bearer ${apiKey}`
     },
     body: JSON.stringify({
       model: settings.mimoModel || "mimo-v2-tts",
+      modalities: ["text", "audio"],
       messages: [
         {
           role: "user",
@@ -172,7 +177,12 @@ async function synthesizeWithMimo(text, settings) {
   });
 
   if (!response.ok) {
-    throw new Error(`MiMo TTS failed: ${response.status}`);
+    let detail = `${response.status}`;
+    try {
+      const body = await response.json();
+      if (body?.error?.message) detail += ` — ${body.error.message}`;
+    } catch (_) { /* ignore */ }
+    throw new Error(`MiMo TTS failed: ${detail}`);
   }
 
   const data = await response.json();
@@ -189,11 +199,29 @@ async function synthesizeWithMimo(text, settings) {
 }
 
 function resolveMimoVoice(text, settings) {
-  if (settings.mimoVoice && settings.mimoVoice !== "auto") {
-    return settings.mimoVoice;
+  const model = settings.mimoModel || "mimo-v2-tts";
+  const voice = settings.mimoVoice;
+
+  // v2.5 incompatible voices: default_zh, default_en
+  const V25_VOICES = new Set(["mimo_default", "Mia", "Chloe", "Milo", "Dean"]);
+  // v2 incompatible voices: Mia, Chloe, Milo, Dean
+  const V2_AUTO_VOICES = new Set(["auto", "mimo_default", "default_zh", "default_en"]);
+
+  if (voice && voice !== "auto") {
+    if (model === "mimo-v2.5-tts" && !V25_VOICES.has(voice)) {
+      return "mimo_default";
+    }
+    if (model !== "mimo-v2.5-tts" && !V2_AUTO_VOICES.has(voice)) {
+      const language = settings.mimoSpeechLanguage === "auto" ? detectSpeechLanguage(text) : settings.mimoSpeechLanguage;
+      return language === "en" ? "default_en" : "default_zh";
+    }
+    return voice;
   }
 
   const language = settings.mimoSpeechLanguage === "auto" ? detectSpeechLanguage(text) : settings.mimoSpeechLanguage;
+  if (model === "mimo-v2.5-tts") {
+    return language === "en" ? "Mia" : "mimo_default";
+  }
   return language === "en" ? "default_en" : "default_zh";
 }
 
